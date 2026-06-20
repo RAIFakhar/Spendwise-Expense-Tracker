@@ -1,0 +1,98 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  avatar    String?
+  currency  String   @default("USD")
+  theme     String   @default("system")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  expenses Expense[]
+  incomes  Income[]
+  budgets  Budget[]
+  settings Settings?
+  sessions Session[]
+}
+
+model Expense {
+  id            String   @id @default(cuid())
+  amount        Float
+  category      String
+  description   String
+  date          DateTime
+  paymentMethod String   @default("cash")
+  notes         String?
+  tags          String   @default("[]")
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
+  @@index([date])
+  @@index([category])
+}
+
+model Income {
+  id        String   @id @default(cuid())
+  amount    Float
+  source    String
+  date      DateTime
+  notes     String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([date])
+}
+
+model Budget {
+  id        String   @id @default(cuid())
+  category  String
+  amount    Float
+  month     Int
+  year      Int
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, category, month, year])
+  @@index([userId])
+}
+
+model Settings {
+  id                   String  @id @default(cuid())
+  userId               String  @unique
+  defaultCategory      String  @default("Other")
+  defaultPaymentMethod String  @default("cash")
+  emailNotifications   Boolean @default(true)
+  budgetAlerts         Boolean @default(true)
+  language             String  @default("en")
+  user                 User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([userId])
+}
