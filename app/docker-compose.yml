@@ -1,0 +1,13 @@
+version: '3.8'
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "file:./prod.db"
+      JWT_SECRET: "${JWT_SECRET:-change-this-in-production}"
+      NODE_ENV: "production"
+    volumes:
+      - ./data:/app/prisma
+    restart: unless-stopped
